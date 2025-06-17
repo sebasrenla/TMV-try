@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TMV Calculator</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f2f2f2; }
+    h2 { text-align: center; }
+    label, input { display: block; width: 100%; margin: 10px 0; }
+    button { padding: 10px; background: #007BFF; color: white; border: none; width: 100%; }
+    button:hover { background: #0056b3; }
+    .result { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>TMV Calculator (Offline)</h2>
+
+  <label>N (Compounding periods):
+    <input type="number" id="n" placeholder="e.g. 360">
+  </label>
+
+  <label>I (Interest Rate per period, %):
+    <input type="number" id="i" placeholder="e.g. 0.5">
+  </label>
+
+  <label>PV (Present Value):
+    <input type="number" id="pv" placeholder="e.g. 0">
+  </label>
+
+  <label>PMT (Payment per period):
+    <input type="number" id="pmt" placeholder="e.g. -500">
+  </label>
+
+  <label>FV (Future Value):
+    <input type="number" id="fv" placeholder="Leave one field empty">
+  </label>
+
+  <button onclick="calculateTMV()">Calculate Missing Value</button>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function calculateTMV() {
+      let N = parseFloat(document.getElementById("n").value);
+      let I = parseFloat(document.getElementById("i").value) / 100;
+      let PV = parseFloat(document.getElementById("pv").value);
+      let PMT = parseFloat(document.getElementById("pmt").value);
+      let FV = parseFloat(document.getElementById("fv").value);
+
+      let emptyFields = [
+        isNaN(N), isNaN(I), isNaN(PV), isNaN(PMT), isNaN(FV)
+      ].filter(v => v).length;
+
+      if (emptyFields !== 1) {
+        document.getElementById("result").innerText = "Please leave exactly ONE field empty to calculate.";
+        return;
+      }
+
+      // PV = - PMT × [(1 - (1 + I)^-N) / I] - FV / (1 + I)^N
+
+      if (isNaN(FV)) {
+        FV = - (PV * Math.pow(1 + I, N) + PMT * ((Math.pow(1 + I, N) - 1) / I));
+        document.getElementById("result").innerText = "Calculated FV: " + FV.toFixed(2);
+      }
+      else if (isNaN(PV)) {
+        PV = -(FV / Math.pow(1 + I, N) + PMT * ((Math.pow(1 + I, N) - 1) / (I * Math.pow(1 + I, N))));
+        document.getElementById("result").innerText = "Calculated PV: " + PV.toFixed(2);
+      }
+      else if (isNaN(PMT)) {
+        PMT = -(FV + PV * Math.pow(1 + I, N)) * (I / (Math.pow(1 + I, N) - 1));
+        document.getElementById("result").innerText = "Calculated PMT: " + PMT.toFixed(2);
+      }
+      else if (isNaN(N)) {
+        let numerator = Math.log((FV * I + PMT) / (PMT + PV * I));
+        let denominator = Math.log(1 + I);
+        N = numerator / denominator;
+        document.getElementById("result").innerText = "Calculated N: " + N.toFixed(2);
+      }
+      else if (isNaN(I)) {
+        document.getElementById("result").innerText = "Calculating I (interest rate) numerically is complex. Try a financial calculator.";
+      }
+    }
+  </script>
+</body>
+</html>
